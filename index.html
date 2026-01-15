@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dictée</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="app-header">
+        <h1>Dictée</h1>
+        <p class="help">Refresh to page to restart.</p>
+      </header>
+
+      <section class="card" aria-live="polite">
+        <div class="status" id="status">Loading vocabulary...</div>
+        <div class="word" id="word">...</div>
+        <div class="controls">
+          <button id="speakBtn" class="btn">Parler</button>
+          <button id="revealBtn" class="btn">Révéler </button>
+          <button id="nextBtn" class="btn btn-primary">Mot suivant ➡</button>
+        </div>
+      </section>
+
+      <p class="download">
+        <a href="https://raw.githubusercontent.com/kcha/dictee-trainer/refs/heads/main/data/vocabulary.txt" aria-label="Download vocabulary list">Vocabulary List</a>
+      </p>
+
+      <div class="voice-picker">
+        <label for="voiceSelect">Voice</label>
+        <select id="voiceSelect" class="select"></select>
+      </div>
+
+<!--
+      <div class="app-footer">
+        <p class="disclaimer">
+          Disclaimer: This app doesn’t collect or store any personal data. It’s provided as-is. Please use at your own discretion.
+        </p>
+        <p class="contact">
+          Contact: Kevin Ha
+        </p>
+        <p class="contact">
+          Source code: <a href="https://github.com" aria-label="Source code">github.com</a>
+        </p>
+      </div> -->
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
