@@ -16,6 +16,7 @@ const state = {
   voice: null,
   voiceId: "",
   showingList: false,
+  started: false,
 };
 
 const controls = [speakBtn, revealBtn, prevBtn, nextBtn];
@@ -105,7 +106,7 @@ function chooseVoice(voices) {
 
 function syncVoices() {
   if (!(voiceSelect instanceof HTMLSelectElement)) {
-    return;
+    return 0;
   }
   const voices = getAvailableVoices();
   voiceSelect.innerHTML = "";
@@ -124,11 +125,12 @@ function syncVoices() {
     voiceSelect.appendChild(option);
     voiceSelect.disabled = true;
     setSelectedVoice(null);
-    return;
+    return 0;
   }
 
   voiceSelect.disabled = false;
   setSelectedVoice(chooseVoice(voices));
+  return voices.length;
 }
 
 function speakWord(word, rate = 0.45) {
@@ -238,7 +240,11 @@ prevBtn.addEventListener("click", () => {
 });
 
 speechSynthesis.addEventListener("voiceschanged", () => {
-  syncVoices();
+  const count = syncVoices();
+  if (!state.started && count > 0 && state.words.length) {
+    state.started = true;
+    startWord();
+  }
 });
 
 async function loadWords() {
@@ -261,9 +267,14 @@ async function loadWords() {
     state.index = 0;
     setListVisible(false);
     renderVocabList();
-    syncVoices();
+    const voiceCount = syncVoices();
     initControls(true);
-    startWord();
+    if (voiceCount > 0) {
+      state.started = true;
+      startWord();
+    } else {
+      setStatus("Loading voices...");
+    }
   } catch (error) {
     setStatus(error.message || "Unable to load words.");
     setWord("--", true);
