@@ -1,7 +1,6 @@
 const statusEl = document.getElementById("status");
 const wordEl = document.getElementById("word");
 const speakBtn = document.getElementById("speakBtn");
-const speakSlowBtn = document.getElementById("speakSlowBtn");
 const revealBtn = document.getElementById("revealBtn");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
@@ -18,6 +17,8 @@ const state = {
   voiceId: "",
   showingList: false,
 };
+
+const controls = [speakBtn, revealBtn, prevBtn, nextBtn];
 
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i -= 1) {
@@ -48,15 +49,10 @@ function renderVocabList() {
   });
 }
 
-function hideVocabList() {
+function setListVisible(visible) {
+  state.showingList = visible;
   if (vocabSection) {
-    vocabSection.classList.add("is-hidden");
-  }
-}
-
-function showVocabList() {
-  if (vocabSection) {
-    vocabSection.classList.remove("is-hidden");
+    vocabSection.classList.toggle("is-hidden", !visible);
   }
 }
 
@@ -65,11 +61,7 @@ function currentWord() {
 }
 
 function updateProgress() {
-  setStatus(`Mot ${state.index + 1} sur ${state.words.length}`);
-}
-
-function pickVoice() {
-  syncVoices();
+  setStatus(`${state.index + 1}/${state.words.length}`);
 }
 
 function voiceIdFor(voice) {
@@ -85,6 +77,30 @@ function getAvailableVoices() {
     (voice) => voice.lang && voice.lang.toLowerCase().startsWith("fr"),
   );
   return frenchVoices.length ? frenchVoices : voices;
+}
+
+function setSelectedVoice(voice) {
+  state.voice = voice || null;
+  state.voiceId = voice ? voiceIdFor(voice) : "";
+  if (voiceSelect) {
+    voiceSelect.value = state.voiceId;
+  }
+}
+
+function chooseVoice(voices) {
+  const currentId = state.voiceId;
+  if (currentId) {
+    const match = voices.find((voice) => voiceIdFor(voice) === currentId);
+    if (match) {
+      return match;
+    }
+  }
+
+  return (
+    voices.find((voice) => voice.name === "Amélie" && voice.lang === "fr-CA") ||
+    voices.find((voice) => /french/i.test(voice.name)) ||
+    voices[0]
+  );
 }
 
 function syncVoices() {
@@ -107,26 +123,12 @@ function syncVoices() {
     option.textContent = "Default voice";
     voiceSelect.appendChild(option);
     voiceSelect.disabled = true;
-    state.voice = null;
-    state.voiceId = "";
+    setSelectedVoice(null);
     return;
   }
 
   voiceSelect.disabled = false;
-  const currentId = state.voiceId;
-  const match =
-    currentId &&
-    voices.find((voice) => voiceIdFor(voice) === currentId);
-
-  const nextVoice =
-    match ||
-    voices.find((voice) => voice.name === "Amélie" && voice.lang === "fr-CA") ||
-    voices.find((voice) => /french/i.test(voice.name)) ||
-    voices[0];
-
-  state.voice = nextVoice;
-  state.voiceId = voiceIdFor(nextVoice);
-  voiceSelect.value = state.voiceId;
+  setSelectedVoice(chooseVoice(voices));
 }
 
 function speakWord(word, rate = 0.45) {
@@ -152,8 +154,7 @@ function speakWord(word, rate = 0.45) {
 
 function startWord(placeholder = "Écoutez...", keepListVisible = false, speak = true) {
   if (state.showingList && !keepListVisible) {
-    state.showingList = false;
-    hideVocabList();
+    setListVisible(false);
   }
   state.revealed = false;
   setWord(placeholder, true);
@@ -168,8 +169,7 @@ function nextWord() {
     return;
   }
   if (state.showingList) {
-    state.showingList = false;
-    hideVocabList();
+    setListVisible(false);
     shuffle(state.words);
     renderVocabList();
     state.index = -1;
@@ -178,8 +178,7 @@ function nextWord() {
   state.index += 1;
   if (state.index >= state.words.length) {
     // state.index = state.words.length - 1;
-    state.showingList = true;
-    showVocabList();
+    setListVisible(true);
     startWord("🎉", true, false);
     setStatus("Liste terminée. Cliquez 'Mot suivant' pour recommencer.");
     return;
@@ -192,8 +191,7 @@ function prevWord() {
     return;
   }
   if (state.showingList) {
-    state.showingList = false;
-    hideVocabList();
+    setListVisible(false);
   }
   if (state.index > 0) {
     state.index -= 1;
@@ -207,10 +205,11 @@ function revealWord() {
 }
 
 function initControls(enabled) {
-  speakBtn.disabled = !enabled;
-  revealBtn.disabled = !enabled;
-  prevBtn.disabled = !enabled;
-  nextBtn.disabled = !enabled;
+  controls.forEach((button) => {
+    if (button) {
+      button.disabled = !enabled;
+    }
+  });
 }
 
 speakBtn.addEventListener("click", () => {
@@ -221,8 +220,7 @@ speakBtn.addEventListener("click", () => {
 voiceSelect.addEventListener("change", () => {
   const voices = getAvailableVoices();
   const selected = voices.find((voice) => voiceIdFor(voice) === voiceSelect.value);
-  state.voice = selected || null;
-  state.voiceId = selected ? voiceIdFor(selected) : "";
+  setSelectedVoice(selected);
 });
 
 revealBtn.addEventListener("click", () => {
@@ -240,7 +238,7 @@ prevBtn.addEventListener("click", () => {
 });
 
 speechSynthesis.addEventListener("voiceschanged", () => {
-  pickVoice();
+  syncVoices();
 });
 
 async function loadWords() {
@@ -261,10 +259,9 @@ async function loadWords() {
 
     state.words = shuffle(words.slice());
     state.index = 0;
-    state.showingList = false;
-    hideVocabList();
+    setListVisible(false);
     renderVocabList();
-    pickVoice();
+    syncVoices();
     initControls(true);
     startWord();
   } catch (error) {

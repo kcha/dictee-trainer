@@ -34,40 +34,16 @@ body {
   animation: fadeIn 0.8s ease-out;
 }
 
-.app-footer {
-  display: grid;
-  gap: 6px;
-  text-align: center;
-}
-
-.disclaimer,
-.contact {
-  margin: 0;
-}
-
 .app-header {
   text-align: center;
   display: grid;
   gap: 12px;
 }
 
-.eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  font-size: 0.72rem;
-  color: var(--muted);
-  margin: 0;
-}
-
 h1 {
   margin: 0;
   font-family: "IBM Plex Serif", serif;
   font-size: clamp(2.4rem, 5vw, 3.4rem);
-}
-
-.subtitle {
-  margin: 0;
-  color: var(--muted);
 }
 
 .card {
@@ -110,7 +86,7 @@ h1 {
 }
 
 .status {
-  font-size: 0.95rem;
+  font-size: 1.15rem;
   color: var(--muted);
 }
 
@@ -199,12 +175,6 @@ h1 {
 .btn-primary:hover {
   background: var(--accent-dark);
   border-color: var(--accent-dark);
-}
-
-.hint {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.9rem;
 }
 
 @keyframes fadeIn {
